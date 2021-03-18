@@ -1,0 +1,48 @@
+# Specify AWS CLI Profile to be Used
+aws_profile: default
+
+
+#### Ansible Paths ####
+# Path to ansible config directory
+ans_conf_dir: /etc/ansible/
+# Path to ansible inventory file
+ansible_inv_path: /etc/ansible/hosts/hosts.txt
+
+
+#### AWS Subnets ####
+## These two subnets should have connectivity between then
+# For Hadoop Name Node
+nn_subnet_id: "subnet-85efd5ed"
+# For Hadoop Data Nodes
+dn_subnet_id: "subnet-85efd5ed"
+
+
+#### AMI IDs ####
+## Recommended To use RedHat Linux
+# For Hadoop Name Node
+nn_ami_id: "ami-0a9d27a9f4f5c0efc"
+# For Hadoop Data Nodes
+dn_ami_id: "ami-0a9d27a9f4f5c0efc"
+
+
+#### Specify Instance Types ####
+# For Hadoop Name Node
+nn_inst_type: "t2.micro"
+# For Hadoop Data Nodes
+dn_inst_type: "t2.micro"
+
+
+#### Your Public CIDR ####
+# This Public CIDR/IP is allowed through Security Group of Name Node
+# So that Name Node can be accessible to Clients
+#
+# If not specified, then by default 0.0.0.0/0 will be allowed
+# That is Name Node is vulnerable as it is publically open
+pub_cidr: "0.0.0.0/0"
+
+
+# Port Number for Hadoop Name Node Server
+name_node_port: 9091
+
+# Number of Data Nodes for Hadoop cluster
+no_of_data_nodes: 2

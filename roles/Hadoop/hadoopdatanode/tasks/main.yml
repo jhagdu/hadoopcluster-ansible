@@ -1,0 +1,66 @@
+- name: Download Java
+  block:
+  - name: Download Java Using URL
+    get_url:
+      url: https://storage.googleapis.com/drive-bulk-export-anonymous/20210318T065113Z/4133399871716478688/1d0ca896-bad6-41a2-8dbc-8cae5c9ea930/1/5a9a3dc0-808b-477d-b408-30e493f62a40?authuser
+      dest: /root/java.zip
+  - name: Install Unzip Package
+    package:
+      name: unzip
+      state: present
+  - name: Unzip Downloaded Java Archive
+    unarchive:
+      src: /root/java.zip
+      remote_src: yes
+      dest: /root/
+  rescue:
+  - name: Make Directory
+    file:
+      path: /root/Java
+      state: directory
+  - name: Copy Java RPM
+    copy: 
+      src: jdk-8u171-linux-x64.rpm
+      dest: /root/Java/jdk-8u171-linux-x64.rpm
+
+- name: Download Hadoop RPM
+  get_url:
+    url: https://archive.apache.org/dist/hadoop/common/hadoop-1.2.1/hadoop-1.2.1-1.x86_64.rpm
+    dest: /root/hadoop-1.2.1-1.x86_64.rpm
+
+- name: "Get Installed Packages"
+  package_facts:
+    manager: auto
+
+- name: Install Java
+  command: "rpm -i /root/Java/jdk-8u171-linux-x64.rpm"
+  when: "'jdk1.8' not in ansible_facts.packages"
+
+- name: Install Hadoop
+  command: "rpm -i /root/hadoop-1.2.1-1.x86_64.rpm --force"
+  when: "'hadoop' not in ansible_facts.packages"
+
+- name: Create Data Node DFS Directory
+  file:
+    path: /dfs_shared
+    state: directory
+
+- name: Copy HDFS Site XML Conf
+  copy:
+    src: hdfs-site.xml
+    dest: /etc/hadoop/hdfs-site.xml
+
+- name: Copy Core Site XML Conf
+  template:
+    src: core-site.xml.j2
+    dest: /etc/hadoop/core-site.xml
+
+- name: Check wheater Hadoop Data Node is already running or not
+  shell: "jps | grep DataNode"
+  register: chk_name
+  ignore_errors: yes
+
+- name: Start Hadoop
+  command: "hadoop-daemon.sh start datanode"
+  when:
+    - chk_name.rc != 0

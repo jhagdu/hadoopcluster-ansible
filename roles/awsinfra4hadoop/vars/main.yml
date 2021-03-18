@@ -1,0 +1,8 @@
+# Key-pair name for Kubernetes Nodes
+hadoop_key_name: hadoopkey
+
+#### Security Groups Name ####
+# For Master Node
+nn_sg_name: namesg
+# For Worker Nodes
+dn_sg_name: datasg

@@ -1,0 +1,3 @@
+{% for inst_no in range([[ no_of_data_nodes ]]) %}
+{% raw %}{{{% endraw %} data_node_instances.results.{{ inst_no }}.instances.0.public_ip_address {% raw %}}}{% endraw %} 
+{% endfor %}

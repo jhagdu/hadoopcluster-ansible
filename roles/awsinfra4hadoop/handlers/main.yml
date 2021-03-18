@@ -1,0 +1,5 @@
+- name: Save Hadoop Key PEM File
+  copy:
+    content: "{{ hadoopkp.key.private_key }}"
+    dest: "{{ ans_conf_dir }}{{ hadoop_key_name }}.pem"
+    mode: '0400'

@@ -1,0 +1,170 @@
+- name: Create Key-Pair for Hadoop Nodes
+  ec2_key:
+    name: "{{ hadoop_key_name }}"
+    state: present
+    profile: "{{ aws_profile }}"
+  register: hadoopkp
+  notify: Save Hadoop Key PEM File
+
+- name: Run Handlers
+  meta: flush_handlers
+
+- name: Create a security group for Hadoop Data Nodes
+  ec2_group:
+    name: "{{ dn_sg_name }}"
+    description: Security Group for Hadoop Data Nodes
+    state: present
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ pub_cidr }}"
+    rules_egress:
+      - proto: all
+        cidr_ip: 0.0.0.0/0
+    profile: "{{ aws_profile }}"
+
+- name: Create a security group for Hadoop Name Node
+  ec2_group:
+    name: "{{ nn_sg_name }}"
+    description: Security Group for Hadoop Name Node
+    state: present
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: tcp
+        from_port: "{{ name_node_port }}"
+        to_port: "{{ name_node_port }}"
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: tcp
+        from_port: "{{ name_webui_http }}"
+        to_port: "{{ name_webui_http }}"
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: tcp
+        from_port: "{{ name_webui_https }}"
+        to_port: "{{ name_webui_https }}"
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: tcp
+        from_port: "{{ name_meta_svc1 }}"
+        to_port: "{{ name_meta_svc1 }}"
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: tcp
+        from_port: "{{ name_meta_svc2 }}"
+        to_port: "{{ name_meta_svc2 }}"
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: all
+        group_name: "{{ dn_sg_name }}"
+    rules_egress:
+      - proto: all
+        cidr_ip: 0.0.0.0/0
+    profile: "{{ aws_profile }}"
+
+- name: Update a security group for Hadoop Data Nodes
+  ec2_group:
+    name: "{{ dn_sg_name }}"
+    description: Security Group for Hadoop Data Nodes
+    state: present
+    rules:
+      - proto: tcp
+        from_port: 22
+        to_port: 22
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: tcp
+        from_port: "{{ data_webui_http }}"
+        to_port: "{{ data_webui_http }}"
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: tcp
+        from_port: "{{ data_webui_https }}"
+        to_port: "{{ data_webui_https }}"
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: tcp
+        from_port: "{{ data_transfer_port }}"
+        to_port: "{{ data_transfer_port }}"
+        cidr_ip: "{{ pub_cidr }}"
+      - proto: all
+        group_name: "{{ nn_sg_name }}"
+    rules_egress:
+      - proto: all
+        cidr_ip: 0.0.0.0/0
+    profile: "{{ aws_profile }}"
+
+- name: Launch Hadoop Name Node Instance if there is no instance
+  ec2_instance:
+    name: HadoopNameNode
+    instance_type: "{{ nn_inst_type }}"
+    image_id: "{{ nn_ami_id }}"
+    key_name: "{{ hadoop_key_name }}"
+    security_group: "{{ nn_sg_name }}"
+    state: present
+    tags:
+      Name: hadoop-name-node
+    vpc_subnet_id: "{{ nn_subnet_id }}"
+    wait: yes
+    profile: "{{ aws_profile }}"
+  register: name_node_instance
+
+- name: Launch Hadoop Data Nodes
+  ec2_instance:
+    name: HadoopDataNode{{ item }}
+    instance_type: "{{ dn_inst_type }}"
+    image_id: "{{ dn_ami_id }}"
+    key_name: "{{ hadoop_key_name }}"
+    security_group: "{{ dn_sg_name }}"
+    state: present
+    tags:
+      Group: hadoop-data-node
+    vpc_subnet_id: "{{ dn_subnet_id }}"
+    wait: yes
+    profile: "{{ aws_profile }}"
+  with_sequence: count={{ no_of_data_nodes }}
+  register: data_node_instances
+
+- name: Updating Inventory with Name Node IP
+  blockinfile:
+    path: "{{ ansible_inv_path }}"
+    marker: "# ANSIBLE MANAGED BLOCK FOR HADOOP NAME NODE {mark}"
+    block: |
+            [HadoopNameNode]
+            {{ name_node_instance.instances.0.public_ip_address }}
+
+- name: Copy Template file
+  template:
+    src: "get_data_node_ips.j2"
+    dest: "retrieve_data_node_ips.j2"
+    variable_start_string: "[["
+    variable_end_string: "]]"
+    block_start_string: "[%"
+    block_end_string: "%]"
+
+- name: Retrieving IPs of Data Nodes
+  set_fact:
+    dn_ips: "{{ lookup('template', 'retrieve_data_node_ips.j2') }}"
+
+- name: Updating Inventory with Data Node IPs
+  blockinfile:
+    path: "{{ ansible_inv_path }}"
+    marker: "# ANSIBLE MANAGED BLOCK FOR HADOOP DATA NODES {mark}"
+    block: |
+            [HadoopDataNodes]
+            {% set ip_list = dn_ips.split('\n') %}
+            {% for item in ip_list %}
+            {{ item }}
+            {% endfor %}
+
+- name: Delete Unnecessary files
+  file:
+    state: absent
+    path: "retrieve_data_node_ips.j2"
+
+- name: Refreshing Inventory After Update
+  meta: refresh_inventory
+
+- name: Print Message
+  debug:
+    msg: "AWS Infrastructure For Hadoop Cluster is Ready!!"
+
+- name: Wait
+  pause:
+    seconds: "7"

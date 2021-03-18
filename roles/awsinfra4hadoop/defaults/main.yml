@@ -1,0 +1,20 @@
+# Default Hadoop Ports
+
+## Name Node WebUI
+# Over HTTP
+name_webui_http: 50070
+# Over HTTPS
+name_webui_https: 50470
+
+## Name Node Metadata Services
+name_meta_svc1: 8020
+name_meta_svc2: 9000
+
+## Data Node WebUI
+# Over HTTP
+data_webui_http: 50075
+# Over HTTPS
+data_webui_https: 50475
+
+# Data Node Data Transfer Port
+data_transfer_port: 50010

@@ -1,0 +1,28 @@
+- hosts: localhost
+  gather_facts: false
+  vars_files:
+    - variables/aws_hadoop_infra.yml
+  roles:
+    - awsinfra4hadoop
+
+- hosts: HadoopNameNode
+  vars_files:
+    - variables/aws_hadoop_infra.yml
+  roles:
+    - { role: Hadoop/hadoopnamenode, become: yes}
+
+- hosts: HadoopDataNodes
+  vars:
+    - hadoop_name_ip: "{{ groups.HadoopNameNode[0] }}"
+  vars_files:
+    - variables/aws_hadoop_infra.yml
+  roles:
+    - { role: Hadoop/hadoopdatanode, become: yes}
+
+- hosts: localhost
+  vars:
+    - hadoop_name_ip: "{{ groups.HadoopNameNode[0] }}"
+  tasks:
+  - name: Print Hadoop WebUI Address
+    debug:
+      msg: "Hadoop Name Node WebUI URL :- http://{{ hadoop_name_ip }}:50070"
