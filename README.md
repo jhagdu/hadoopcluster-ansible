@@ -23,7 +23,7 @@ This repository contains the Ansible Playbook and Roles to deploy Hadoop Multi-n
 - Finally run setupHadoopCluster.yml using 'ansible-playbook setupHadoopCluster.yml' command  
 
 ## Note  
-- Recommended to use RedHat AMI or OS for K8s Master and Workers  
+- Recommended to use RedHat AMI or OS for Hadoop Name and Data Nodes  
 - Ansible Config file should include previliage_escalation block to become root user in order to configure AWS Instances  
 
 # Links
