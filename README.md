@@ -28,9 +28,9 @@ This repository contains the Ansible Playbook and Roles to deploy Hadoop Multi-n
 
 # Links
 
-[Click here for Video and Post](https://www.linkedin.com/in/amanjhagrolia143)
+[Click here for Video and Post](https://www.linkedin.com/posts/amanjhagrolia143_vimaldaga-righteducation-educationredefine-activity-6778537176985587712-XVGt)
   
 ***Feel free to Contact if any issue!!***
 
-<a href="https://www.linkedin.com/posts/amanjhagrolia143_vimaldaga-righteducation-educationredefine-activity-6778537176985587712-XVGt" target="_blank"> <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" /> </a> 
+<a href="https://www.linkedin.com/in/amanjhagrolia143" target="_blank"> <img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white" /> </a> 
 <a href="https://galaxy.ansible.com/jhagdu" target="_blank"> <img src="https://galaxy.ansible.com/assets/galaxy-logo-02.svg" height=30 width=140 /> </a>
